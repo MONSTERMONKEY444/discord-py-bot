@@ -1,1 +1,1 @@
-Sickma's Be Smart.. I assume you have installed Python already, including pip installing discord, asyncio, pyfiglet, termcolor, and colorama. Enable Developer Mode on Discord if you haven't already
+Sickma's Be Smart.. I assume you have installed Python already, including pip installing discord, asyncio, pyfiglet, termcolor, and colorama. Enable Developer Mode on Discord if you haven't already. Discord Rate Limits the BOT as well
