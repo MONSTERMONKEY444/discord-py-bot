@@ -132,16 +132,26 @@ class Client(discord.Client):
                 print(f"Guild with ID {self.shared_params['guild_id']} not found.")
                 return
 
-            channels = guild.channels
+            channels = await guild.fetch_channels()
             for channel in channels:
-                await channel.delete()
-                print(f'{self.counters["channels_deleted"] + 1} Channel "{channel.name}" deleted successfully!')
-                self.counters["channels_deleted"] += 1
-            print("All channels deleted! xd GONE")
+                try:
+                    await channel.delete()
+                    print(f'{self.counters["channels_deleted"] + 1} Channel "{channel.name}" deleted successfully!')
+                    self.counters["channels_deleted"] += 1
+                except discord.Forbidden:
+                    print(f'Cannot delete channel "{channel.name}" due to lack of permissions!')
+                except discord.HTTPException as e:
+                    if e.status == 404:
+                        print(f'Channel "{channel.name}" not found. Skipping deletion. Possibly too fast!')
+                    else:
+                        print(f'Failed to delete channel "{channel.name}": {e}')
+            
+            print("All channels deleted!")
         except discord.Forbidden:
             print(f'Cannot perform action due to lack of permissions!')
         except discord.HTTPException as e:
             print(f'Failed to perform action: {e}')
+
 
     async def send_message_all_channels(self):
         try:
@@ -181,20 +191,20 @@ class Client(discord.Client):
             
 
 async def check_guild_exists(guild_id, bot_token):
-        intents = discord.Intents.default()
-        client = discord.Client(intents=intents)
-        try:
-            await client.login(bot_token)
-            guild = await client.fetch_guild(guild_id)
-            await client.close()
-            return guild is not None
-        except discord.NotFound:
-            await client.close()
-            return False
-        except Exception as e:
-            await client.close()
-            print(f"Error: {e}")
-            return False
+    intents = discord.Intents.default()
+    client = discord.Client(intents=intents)
+    try:
+        await client.login(bot_token)
+        guild = await client.fetch_guild(guild_id)
+        await client.close()
+        return guild is not None
+    except discord.NotFound:
+        await client.close()
+        return False
+    except Exception as e:
+        await client.close()
+        print(f"Error: {e}")
+        return False
 
 async def main():
         valid_guild = False
