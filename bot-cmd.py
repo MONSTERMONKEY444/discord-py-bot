@@ -3,7 +3,6 @@ import asyncio
 import pyfiglet
 from pystyle import Center, Colors, Colorate
 
-
 # Function to read bot tokens from a file
 def read_bot_tokens(filename):
     with open(filename, 'r') as file:
@@ -215,17 +214,11 @@ async def main():
         counters = {"messages": 0, "channels": 0, "channels_deleted": 0}
 
         while True:
-            text1 = "SIERRA IS A"
-            figlet_text1 = pyfiglet.figlet_format(text1, font="5lineoblique")
-            gradient_text1 = Colorate.Color(Colors.blue, figlet_text1, True)
-            centered_text1 = Center.XCenter(gradient_text1)
-            print(centered_text1)
+            text = "SIERRA EL TERRORIST"
+            figlet_text = pyfiglet.figlet_format(text, font="letters")
+            gradient_text = Colorate.Horizontal(Colors.red_to_green, figlet_text, True)
+            print(gradient_text)
 
-            text2 = "TERRORIST"
-            figlet_text2 = pyfiglet.figlet_format(text2, font="standard")
-            gradient_text2 = Colorate.Color(Colors.red, figlet_text2, True)
-            centered_text2 = Center.XCenter(gradient_text2)
-            print(centered_text2)
             
             print(Center.XCenter("[0 For Exiting]"))
             print(Center.XCenter("[1 For Direct Messages]"))
