@@ -2,6 +2,7 @@ import discord
 import asyncio
 import pyfiglet
 from pystyle import Center, Colors, Colorate
+import os
 
 # Function to read bot tokens from a file
 def read_bot_tokens(filename):
@@ -43,6 +44,7 @@ class Client(discord.Client):
             MESSAGE = self.shared_params['MESSAGE']
             NUM_MESSAGES = self.shared_params['NUM_MESSAGES']
             PHOTO_URL = self.shared_params['PHOTO_URL']
+            FILE_PATH = self.shared_params['FILE_PATH']
             DELAY_TIME = self.shared_params['DELAY_TIME']
 
             user = await self.fetch_user(USER_ID)
@@ -52,6 +54,9 @@ class Client(discord.Client):
                     embed.set_image(url=PHOTO_URL)
                     await user.send(embed=embed)
                     print(f'{self.counters["messages"] + 1} Message & Photo sent to "{user}", check their reaction!')
+                elif FILE_PATH and os.path.isfile(FILE_PATH):
+                    await user.send(MESSAGE, file=discord.File(FILE_PATH))
+                    print(f'{self.counters["messages"] + 1} Message & File sent to "{user}"')
                 else:
                     await user.send(MESSAGE)
                     print(f'{self.counters["messages"] + 1} Message sent to "{user}"')
@@ -68,6 +73,7 @@ class Client(discord.Client):
             MESSAGE = self.shared_params['MESSAGE']
             NUM_MESSAGES = self.shared_params['NUM_MESSAGES']
             PHOTO_URL = self.shared_params['PHOTO_URL']
+            FILE_PATH = self.shared_params['FILE_PATH']
             DELAY_TIME = self.shared_params['DELAY_TIME']
 
             guild = discord.utils.get(self.guilds, id=self.shared_params['guild_id'])
@@ -86,6 +92,9 @@ class Client(discord.Client):
                     embed.set_image(url=PHOTO_URL)
                     await channel.send(embed=embed)
                     print(f'{self.counters["messages"] + 1} Message & Photo sent to channel "{channel.name}"')
+                elif FILE_PATH and os.path.isfile(FILE_PATH):
+                    await channel.send(MESSAGE, file=discord.File(FILE_PATH))
+                    print(f'{self.counters["messages"] + 1} Message & File sent to channel "{channel.name}"')
                 else:
                     await channel.send(MESSAGE)
                     print(f'{self.counters["messages"] + 1} Message sent to channel "{channel.name}"')
@@ -163,6 +172,7 @@ class Client(discord.Client):
             channels = guild.text_channels
             MESSAGE = self.shared_params['MESSAGE']
             PHOTO_URL = self.shared_params['PHOTO_URL']
+            FILE_PATH = self.shared_params.get('FILE_PATH')
             DELAY_TIME = self.shared_params['DELAY_TIME']
             NUM_MESSAGES_PER_CHANNEL = self.shared_params['NUM_MESSAGES_PER_CHANNEL']
 
@@ -174,6 +184,9 @@ class Client(discord.Client):
                             embed.set_image(url=PHOTO_URL)
                             await channel.send(embed=embed)
                             print(f'{self.counters["messages"] + 1} Message & Photo sent to channel "{channel.name}"')
+                        elif FILE_PATH and os.path.isfile(FILE_PATH):
+                            await channel.send(MESSAGE, file=discord.File(FILE_PATH))
+                            print(f'{self.counters["messages"] + 1} Message & File sent to channel "{channel.name}"')
                         else:
                             await channel.send(MESSAGE)
                             print(f'{self.counters["messages"] + 1} Message sent to channel "{channel.name}"')
@@ -207,78 +220,84 @@ async def check_guild_exists(guild_id, bot_token):
         return False
 
 async def main():
-        valid_guild = False
-        guild_id = None
-        while not valid_guild:
-            try:
-                guild_id = int(input("Enter Discord Server ID: "))
-                for token in BOT_TOKENS:
-                    valid_guild = await check_guild_exists(guild_id, token)
-                    if valid_guild:
-                        break   
-                if not valid_guild:
-                    print("Invalid server ID. Please try again.")
-            except ValueError:
-                print("Invalid input. Please enter a valid server ID.")
-        shared_params = {'guild_id': guild_id}
+    valid_guild = False
+    guild_id = None
+    while not valid_guild:
+        try:
+            guild_id = int(input("Enter Discord Server ID: "))
+            for token in BOT_TOKENS:
+                valid_guild = await check_guild_exists(guild_id, token)
+                if valid_guild:
+                    break   
+            if not valid_guild:
+                print("Invalid server ID. Please try again.")
+        except ValueError:
+            print("Invalid input. Please enter a valid server ID.")
+    shared_params = {'guild_id': guild_id}
+    counters = {"messages": 0, "channels": 0, "channels_deleted": 0}
+
+    while True:
+        text = "SIERRA EL TERRORIST"
+        figlet_text = pyfiglet.figlet_format(text, font="letters")
+        gradient_text = Colorate.Horizontal(Colors.red_to_green, figlet_text, True)
+        print(gradient_text)
+
+        
+        print(Center.XCenter("[0 For Exiting]"))
+        print(Center.XCenter("[1 For Direct Messages]"))
+        print(Center.XCenter("[2 For Text Channel Messages]"))
+        print(Center.XCenter("[3 For Create Channels]"))
+        print(Center.XCenter("[4 For Deleting All Channels]"))
+        print(Center.XCenter("[5 For All Text Channel Messages]"))
+        print("")
+        print("Note: More Bot Tokens Multiply The Amount You Input!")
+        choice = int(input("Choose an action: "))
+        shared_params['choice'] = choice
+
+        if choice == 0:
+            break
+        if choice == 1:
+            shared_params['USER_ID'] = int(input("Enter the user ID to send messages to: "))
+            shared_params['MESSAGE'] = input("Enter the message you want to send: ")
+            shared_params['NUM_MESSAGES'] = int(input("Number of messages: "))
+            shared_params['PHOTO_URL'] = input("Enter an Image Address to send (leave empty if no photo): ")
+            if not shared_params['PHOTO_URL']:
+                shared_params['FILE_PATH'] = input("Enter the file path of the MP4 file to send (leave empty if no file): ").strip()
+            shared_params['DELAY_TIME'] = float(input("Enter the delay between messages in seconds: "))
+        elif choice == 2:
+            shared_params['CHANNEL_ID'] = int(input("Enter the channel ID: "))
+            shared_params['MESSAGE'] = input("Enter the message you want to spam: ")
+            shared_params['NUM_MESSAGES'] = int(input("Number of messages: "))
+            shared_params['PHOTO_URL'] = input("Enter an Image Address to send (leave empty if no photo): ").strip()
+            if not shared_params['PHOTO_URL']:
+                shared_params['FILE_PATH'] = input("Enter the file path of the MP4 file to send (leave empty if no file): ").strip()
+            shared_params['DELAY_TIME'] = float(input("Enter the delay between messages in seconds: "))
+        elif choice == 3:
+            shared_params['CHANNEL_NAME'] = input("Enter the new channel name: ")
+            shared_params['CHANNEL_TYPE'] = input("Enter the type of the channel (text/voice): ").strip().lower()
+            shared_params['NUM_CHANNELS'] = int(input("Number of channels: "))
+        elif choice == 4:
+            pass
+        elif choice == 5:
+            shared_params['MESSAGE'] = input("Enter the message you want to send to all text channels: ")
+            shared_params['PHOTO_URL'] = input("Enter an Image Address to send (leave empty if no photo): ").strip()
+            if not shared_params['PHOTO_URL']:
+                shared_params['FILE_PATH'] = input("Enter the file path of the MP4 file to send (leave empty if no file): ").strip()
+            shared_params['DELAY_TIME'] = float(input("Enter the delay between messages in seconds: "))
+            shared_params['NUM_MESSAGES_PER_CHANNEL'] = int(input("Enter number of messages per channel: "))
+        else:
+            print("Invalid choice.")
+            continue
+
+        # Initialize and run all BOT clients
+        clients = [Client(intents=discord.Intents.default(), shared_params=shared_params, counters=counters) for _ in BOT_TOKENS]
+        await asyncio.gather(*(client.start(token) for client, token in zip(clients, BOT_TOKENS)))
+
         counters = {"messages": 0, "channels": 0, "channels_deleted": 0}
 
-        while True:
-            text = "SIERRA EL TERRORIST"
-            figlet_text = pyfiglet.figlet_format(text, font="letters")
-            gradient_text = Colorate.Horizontal(Colors.red_to_green, figlet_text, True)
-            print(gradient_text)
-
-            
-            print(Center.XCenter("[0 For Exiting]"))
-            print(Center.XCenter("[1 For Direct Messages]"))
-            print(Center.XCenter("[2 For Text Channel Messages]"))
-            print(Center.XCenter("[3 For Create Channels]"))
-            print(Center.XCenter("[4 For Deleting All Channels]"))
-            print(Center.XCenter("[5 For All Text Channel Messages]"))
-            print("")
-            print("Note: More Bot Tokens Multiply The Amount You Input!")
-            choice = int(input("Choose an action: "))
-            shared_params['choice'] = choice
-
-            if choice == 0:
-                break
-            if choice == 1:
-                shared_params['USER_ID'] = int(input("Enter the user ID to send messages to: "))
-                shared_params['MESSAGE'] = input("Enter the message you want to send: ")
-                shared_params['NUM_MESSAGES'] = int(input("Number of messages: "))
-                shared_params['PHOTO_URL'] = input("Enter an Image Address to send (leave empty if no photo): ")
-                shared_params['DELAY_TIME'] = float(input("Enter the delay between messages in seconds: "))
-            elif choice == 2:
-                shared_params['CHANNEL_ID'] = int(input("Enter the channel ID: "))
-                shared_params['MESSAGE'] = input("Enter the message you want to spam: ")
-                shared_params['NUM_MESSAGES'] = int(input("Number of messages: "))
-                shared_params['PHOTO_URL'] = input("Enter an Image Address to send (leave empty if no photo): ").strip()
-                shared_params['DELAY_TIME'] = float(input("Enter the delay between messages in seconds: "))
-            elif choice == 3:
-                shared_params['CHANNEL_NAME'] = input("Enter the new channel name: ")
-                shared_params['CHANNEL_TYPE'] = input("Enter the type of the channel (text/voice): ").strip().lower()
-                shared_params['NUM_CHANNELS'] = int(input("Number of channels: "))
-            elif choice == 4:
-                pass
-            elif choice == 5:
-                shared_params['MESSAGE'] = input("Enter the message you want to send to all text channels: ")
-                shared_params['PHOTO_URL'] = input("Enter an Image Address to send (leave empty if no photo): ").strip()
-                shared_params['DELAY_TIME'] = float(input("Enter the delay between messages in seconds: "))
-                shared_params['NUM_MESSAGES_PER_CHANNEL'] = int(input("Enter number of messages per channel: "))
-            else:
-                print("Invalid choice.")
-                continue
-
-            # Initialize and run all BOT clients
-            clients = [Client(intents=discord.Intents.default(), shared_params=shared_params, counters=counters) for _ in BOT_TOKENS]
-            await asyncio.gather(*(client.start(token) for client, token in zip(clients, BOT_TOKENS)))
-
-            counters = {"messages": 0, "channels": 0, "channels_deleted": 0}
-
-            continue_choice = input("Continue? (Y/N): ").strip().lower()
-            if continue_choice != 'y':
-                print("Exiting the program. Goodbye! xD")
-                break
+        continue_choice = input("Continue? (Y/N): ").strip().lower()
+        if continue_choice != 'y':
+            print("Exiting the program. Goodbye! xD")
+            break
     
 asyncio.run(main())
